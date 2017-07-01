@@ -1,0 +1,19 @@
+{
+  "name": "njs-timing",
+  "description": "Assetto Corsa live timing web app",
+  "main": "app.js",
+  "authors": [
+    "AlessandroSam"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/components",
+    "test",
+    "tests"
+  ]
+}

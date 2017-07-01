@@ -1,0 +1,100 @@
+body {
+  background-color: black;
+  font-family: Consolas, sans-serif;
+}
+
+div, p {
+  color: white;
+}
+
+div#timing-content {
+  padding: 0px 50px 20px 50px;
+}
+
+div.header.row {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  min-height: 30px;
+}
+
+.digital-counter {
+  display: inline-block;
+  min-width: 40px;
+  text-align: right;
+  font-family: Prime, sans-serif;
+  font-size: 20px;
+}
+
+.table > thead > tr > th {
+  border: none;
+  background-color: #bd0000;
+  padding-left: 8px;
+}
+
+.table > tbody > tr > td {
+  font-size: 14px;
+  border: none;
+  padding-left: 8px;
+}
+
+table tr:nth-child(odd) {
+  background-color: #222;
+}
+
+table tr:nth-child(even) {
+  background-color: #333;
+}
+
+table .number-col {
+  text-align: right;
+}
+
+.time-col {
+  width: 80px;
+  text-align: right;
+}
+
+.total-time {
+  width: 100px;
+}
+
+.pit-col {
+  width: 50px;
+}
+
+.lap-col {
+  width: 50px;
+}
+
+table .position {
+  text-align: center;
+  border-bottom: 1px black;
+}
+
+tbody td.number-col.position {
+  background-color: #bd0000;
+  width: 29px;
+  font-style: italic;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+tbody td.recent-lap {
+	font-weight: bold;
+	background-color: #ff6400;
+}
+
+tbody tr.lead-lap {
+	font-weight: bold;
+}
+
+.fastest-lap {
+	font-weight: bold;
+	color: white;
+	background-color: purple;
+}
+
+.is-in-pit {
+  color: #aaa;
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html ng-app="liveTiming">
+<head>
+  <title>Лайв-тайминг</title>
+  <link rel="stylesheet" href="fonts/prime.css"/>
+  <link rel="stylesheet" href="components/bootstrap/dist/css/bootstrap.css"/>
+  <link rel="stylesheet" href="css/timing.css"/>
+  <script src="js/angular.min.js"></script>
+  <script src="js/app-timing.js"></script>
+</head>
+
+<body>
+	<div id="timing-content" ng-controller="LiveTimingCtrl">
+    <div class="header row">
+      <div class="col-md-6">
+        <span>Сессия: {{timingData.sessionString}}</span>
+      </div>
+      <!-- Практика и квалификация ограничивается временем, гонка - кругами -->
+      <div ng-if="sessionOk && !isRace" class="col-md-6">
+        <span>Оставшееся время:</span>
+        <span class="digital-counter">{{timeLeftView | date:'m:ss'}}</span>
+      </div>
+      <div ng-if="sessionOk && isRace" class="col-md-6">
+        <span>Осталось кругов:</span>
+        <div class="digital-counter">{{lapsRemaining}}</div>
+      </div>
+    </div>
+    <div style="padding-left: 15px" ng-if="sessionOk && isRace" class="header row">
+      <span ng-if="timingData.fastestLap.lapNumber > -1">
+        Лучший круг: {{timingData.fastestLap.driverName}} ({{timingData.fastestLap.carName}}):
+        {{timingData.fastestLap.bestLap | date:'m:ss.sss'}} - круг {{timingData.fastestLap.lapNumber}}</span>
+    </div>
+
+		<!-- Основной блок с таблицей. Если сессии никакой нет, то не нужно ничего отображать. -->
+		<div ng-if="sessionOk">
+      <div class="timing-table">
+        <table class="table table-condensed timing-table">
+          <thead>
+      			<tr>
+      			  <th class="number-col position">P</th> <!-- Позиция -->
+      			  <!--<th class="number-col">N</th>--> <!-- Внутриигровой ID -->
+      			  <th>ПИЛОТ</th>
+      			  <th>МАШИНА</th>
+              <th>ПИТ</th>
+      			  <th class="time-col">ПОСЛЕДНИЙ</th> <!-- Время последнего круга. Наиболее "свежие" времена выделяются. -->
+      			  <th class="time-col">ЛУЧШИЙ</th> <!-- Время лучшего круга -->
+      			  <th class="number-col">КРУГ</th> <!-- Количество пройденных кругов -->
+      			  <th class="time-col" ng-if="isRace">ОБЩЕЕ ВРЕМЯ</th> <!-- Общее время круга как сумма времён кругов в гонке -->
+              <th class="time-col">РАЗРЫВ</th>
+      			</tr>
+          </thead>
+          <tbody>
+			      <tr ng-repeat="car in timingData.cars" ng-class="{'lead-lap': isLeadLap(car.lapsCompleted), 'is-in-pit': car.isInPit}">
+				      <td class="number-col position">{{$index+1}}</td>
+				      <!--<td class="number-col">{{car.carId}}</td>-->
+				      <td>{{car.driverName}}</td>
+				      <td>{{car.carName}}</td>
+              <td class="pit-col"><span ng-if="car.isInPitlane || car.isInPit">PIT</span></td>
+				      <td class="time-col" ng-class="{'recent-lap': isRecentLap(car.lapPostTime, car.lastLap)}">{{car.lastLap | date:'m:ss.sss'}}</td>
+				      <td class="time-col" ng-class="{'fastest-lap': isFastestLap(car.bestLap)}">{{car.bestLap | date:'m:ss.sss'}}</td>
+				      <td class="number-col lap-col">{{car.lapsCompleted}}</td>
+				      <td class="time-col total-time" ng-if="isRace">{{car.totalTime | date:'mm:ss.sss'}}</td>
+              <td class="time-col">{{car.gap | date:'+mm:ss.sss'}}</td>
+			      </tr>
+          </tbody>
+		    </table>
+      </div>
+		</div>
+	</div>
+</body>
+
+</html>
