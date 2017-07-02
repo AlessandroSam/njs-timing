@@ -18,7 +18,7 @@
         <!-- Практика и квалификация ограничивается временем, гонка - кругами -->
         <div ng-if="sessionOk && !isRace" class="col-md-6">
             <span>Оставшееся время:</span>
-            <span class="digital-counter">{{timeLeftView | date:'m:ss'}}</span>
+            <span class="digital-counter">{{timeLeftView | date:'h:mm:ss':'+0000'}}</span>
         </div>
         <div ng-if="sessionOk && isRace" class="col-md-6">
             <span>Осталось кругов:</span>
