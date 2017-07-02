@@ -1,6 +1,7 @@
 import os
 import html
 
+
 def postLogMessage(message):
     print(message)
 
@@ -16,24 +17,23 @@ def getCarName(car):
             # postLogMessage('file open OK');
             for line in f:
                 postLogMessage('read line ' + line)
-                if (line.find("name") == -1):
+                if line.find("name") == -1:
                     continue
-                keyval = line.split(':');
-                postLogMessage(keyval);
-                postLogMessage(len(keyval));
+                keyval = line.split(':')
                 if len(keyval) > 1 and ('name' in keyval[0]):
+                    postLogMessage(keyval[1])
                     carName = keyval[1][2:-3]
-                    postLogMessage('Got car name ' + carName + ' from JSON');
+                    postLogMessage('Got car name ' + carName + ' from JSON')
                     carList[car] = carName
                     f.close()
                     return carName
             f.close()
         # carName = carList[car];
         carName = car
-        postLogMessage('Got car name ' + carName + ' from dictionary');
-        return carName;
+        postLogMessage('Got car name ' + carName + ' from dictionary')
+        return carName
     except Exception as e:        
-        postLogMessage("Cannot retrieve car name from ui_car.json");
+        postLogMessage("Cannot retrieve car name from ui_car.json")
         print(e)
         return car;
 

@@ -99,26 +99,33 @@ class HTTPPostThread(threading.Thread):
 
 carList = {}
 def getCarName(car):
-    return car;
-    if car not in carList:
-        fname = os.getcwd() + '\\content\\cars\\' + car + '\\ui\\ui_car.json'
-        postLogMessage('opening carinfo file ' + fname)
-        f = open(fname)
-        postLogMessage('file open OK');
-        for line in f:
-            postLogMessage(line)
-            keyval = line.split(':');
-            postLogMessage(keyval);
-            if len(keyval) > 1 and ('name' in keyval[0]):
-                carName = keyval[1][2:-3]
-                postLogMessage('Got car name ' + carName + ' from JSON');
-                carList[car] = carName
-                f.close()
-                return carName
-        f.close()
-    carName = carList[car];
-    postLogMessage('Got car name ' + carName + ' from dictionary');
-    return carName;
+    # return car;
+    try:
+        if car not in carList:
+            fname = os.getcwd() + '\\content\\cars\\' + car + '\\ui\\ui_car.json'
+            postLogMessage('opening carinfo file ' + fname)
+            f = open(fname)
+            postLogMessage('file open OK')
+            for line in f:
+                postLogMessage('read line ' + line)
+                if line.find("name") == -1:
+                    continue
+                keyval = line.split(':')
+                if len(keyval) > 1 and ('name' in keyval[0]):
+                    postLogMessage(keyval[1])
+                    carName = keyval[1][2:-3]
+                    postLogMessage('Got car name ' + carName + ' from JSON')
+                    carList[car] = carName
+                    f.close()
+                    return carName
+            f.close()
+        carName = carList[car];
+        postLogMessage('Got car name ' + carName + ' from dictionary');
+        return carName;
+    except Exception as ex:
+        print(ex)
+        postLogMessage("Cannot retrieve car name from ui_car.json");
+        return car;
 
 class CarInfo:
     """
@@ -158,6 +165,8 @@ class Leaderboard:
         self.sessionLapCount = 0
         self.jsonfile = open("leaderboard.json", "w+")
         self.sessionLapCount = 0
+        self.slotCount = 0
+        self.carsCount = 0
         self.flag = AC_NO_FLAG
 
     def updateSession(self):
@@ -171,7 +180,6 @@ class Leaderboard:
         self.session_time = newSessionTime
         self.sessionLapCount = info.graphics.numberOfLaps  # число кругов в гонке
         self.flag = info.graphics.flag
-
         return isUpdated
 
     def updateCarList(self):
