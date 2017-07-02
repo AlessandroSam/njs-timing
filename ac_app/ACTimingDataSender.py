@@ -78,7 +78,7 @@ class HTTPPostThread(threading.Thread):
         self.data = packet
 
     def start(self):
-        #postLogMessage("HTTP sender thread started")
+        # postLogMessage("HTTP sender thread started")
         return super().start()
 
     def run(self):
@@ -86,46 +86,48 @@ class HTTPPostThread(threading.Thread):
         # Модуль http отказывается работать в AC по неясным причинам. Пошлём POST руками.
         try:
             httpconn = socket.socket()
-            #postLogMessage("Socket created")
+            # postLogMessage("Socket created")
             httpconn.connect((SERVER_ADDR, SERVER_PORT))
-            #postLogMessage("Connected to web server")
-            #postLogMessage("Data:" + self.data)
+            # postLogMessage("Connected to web server")
+            # postLogMessage("Data:" + self.data)
             httpconn.sendall(bytes(self.data[:], 'UTF-8'))
-            #postLogMessage("Send OK")
+            # postLogMessage("Send OK")
         except Exception as e:
             postLogMessage("Cannot post data to server" + repr(e))
         finally:
             httpconn.close()
 
 carList = {}
+
+
 def getCarName(car):
     # return car;
     try:
         if car not in carList:
             fname = os.getcwd() + '\\content\\cars\\' + car + '\\ui\\ui_car.json'
-            postLogMessage('opening carinfo file ' + fname)
+            # postLogMessage('opening carinfo file ' + fname)
             f = open(fname)
-            postLogMessage('file open OK')
+            # postLogMessage('file open OK')
             for line in f:
-                postLogMessage('read line ' + line)
+                # postLogMessage('read line ' + line)
                 if line.find("name") == -1:
                     continue
                 keyval = line.split(':')
                 if len(keyval) > 1 and ('name' in keyval[0]):
-                    postLogMessage(keyval[1])
+                    # postLogMessage(keyval[1])
                     carName = keyval[1][2:-3]
-                    postLogMessage('Got car name ' + carName + ' from JSON')
+                    # postLogMessage('Got car name ' + carName + ' from JSON')
                     carList[car] = carName
                     f.close()
                     return carName
             f.close()
-        carName = carList[car];
-        postLogMessage('Got car name ' + carName + ' from dictionary');
-        return carName;
+        carName = carList[car]
+        postLogMessage('Got car name ' + carName + ' from dictionary')
+        return carName
     except Exception as ex:
-        print(ex)
-        postLogMessage("Cannot retrieve car name from ui_car.json");
-        return car;
+        # print(ex)
+        postLogMessage("Cannot retrieve car name from ui_car.json for " + car)
+        return car
 
 class CarInfo:
     """
@@ -147,6 +149,9 @@ class CarInfo:
         self.isInPitlane = ac.isCarInPitlane(carId) # машина на пит-лейне
         self.isInPit = ac.isCarInPit(carId) # машина в боксах
         self.lapPostTime = 0    # момент времени (по session_time), когда было поставлено время в практике/квалификации
+        self.connected = False
+        self.leaderboardPosition = 0
+        self.realTimeLeaderboardPosition = 0
 
 
 class Leaderboard:
@@ -158,15 +163,17 @@ class Leaderboard:
 
     def __init__(self):
         self.carList = []
+        self.slotCount = ac.getServerSlotsCount()
+        self.carsCount = ac.getCarsCount()
+        postLogMessage('getServerSlotsCount: ' + str(self.slotCount))
+        postLogMessage('getCarsCount: ' + str(self.carsCount))
         for i in range(0, self.MAX_CARS):
             self.carList.append(None)
         self.session = -1
-        self.session_time = 0  # оставшееся время: в гонке начинается с 30 минут и отсчитывает вниз, в том числе и в минус
+        self.session_time = 0  # оставшееся время
         self.sessionLapCount = 0
         self.jsonfile = open("leaderboard.json", "w+")
         self.sessionLapCount = 0
-        self.slotCount = 0
-        self.carsCount = 0
         self.flag = AC_NO_FLAG
 
     def updateSession(self):
@@ -178,7 +185,8 @@ class Leaderboard:
             isUpdated = True
             self.session = newSession
         self.session_time = newSessionTime
-        self.sessionLapCount = info.graphics.numberOfLaps  # число кругов в гонке
+        self.sessionLapCount = info.graphics.numberOfLaps  # число кругов в гонке / TODO Учесть гонки с ограничением по времени
+        self.carsCount = ac.getCarsCount()
         self.flag = info.graphics.flag
         return isUpdated
 
@@ -186,11 +194,14 @@ class Leaderboard:
         # Обновляет список машин/пилотов (прежде всего всё-таки пилотов).
         # Игроки могут меняться в ходе сессии. Если игрок вышел, его "забываем"
         # Нового игрока добавляем в список, обнулив пройденную дистанцию
+        # postLogMessage('slot count: ' + str(self.slotCount))
         for carId in range(0, self.MAX_CARS):
+            # postLogMessage('updateCarList: slot ' + str(carId))
             if self.carList[carId] is None:  # если машины не было
                 # проверяем её существование в игре, если есть - добавляем
                 driverName = str(ac.getDriverName(carId))  # эта странная штука возвращает либо строку, либо число -1
-                if driverName != "-1":
+                # TODO возможное изменение в API: -1 невозможен для индексов, меньших кол-ва слотов на сервере
+                if driverName != "-1" and len(driverName) > 0:
                     self.carList[carId] = CarInfo(carId)
             else:  # машина (была) занята, проверим, занята ли она сейчас и кем
                 driverName = str(ac.getDriverName(carId))
@@ -224,22 +235,34 @@ class Leaderboard:
         """
         for car in self.carList:
             if car is not None:
+                postLogMessage('ac.isConnected(' + str(car.carId) + ') : ' + str(ac.isConnected(car.carId)))
+                car.connected = ac.isConnected(car.carId) == 1
+                if not car.connected:  # отключённые машины не обновляем
+                    continue
                 # Если количество кругов, пройденных пилотом, в игре больше, чем в структуре car, обновляем данные по кругам
                 newLapsCompleted = ac.getCarState(car.carId, acsys.CS.LapCount)
                 if car.lapsCompleted < newLapsCompleted:
+                    # Покруговые обновления
+                    # postLogMessage('Per-lap update')
                     car.lapsCompleted = newLapsCompleted
                     car.lastLap = ac.getCarState(car.carId, acsys.CS.LastLap)
                     car.bestLap = ac.getCarState(car.carId, acsys.CS.BestLap)
                     car.totalTime += car.lastLap
                     car.lapPostTime = self.session_time
-                # Общая дистанция должна обновляться постоянно, иначе сортировка в гонке будет случайной
+                    # postLogMessage('Per-lap update OK')
+                # Постоянные обновления
+                # postLogMessage('Per-iterval update')
                 car.totalDistance = car.lapsCompleted + ac.getCarState(car.carId, acsys.CS.NormalizedSplinePosition)
                 car.isInPitlane = ac.isCarInPitlane(car.carId)
                 car.isInPit = ac.isCarInPit(car.carId)
+                car.leaderboardPosition = ac.getCarLeaderboardPosition(car.carId)
+                car.realTimeLeaderboardPosition = ac.getCarRealTimeLeaderboardPosition(car.carId)
+                # postLogMessage('Per-interval update OK')
         # self.session_time = info.graphics.sessionTimeLeft
 
     def doHttpPost(self, json):
-        header = "POST /ACTiming2/live HTTP/1.1\r\nHost: {}:{}\r\nAccept-Encoding: identity\r\nContent-Length: {}\r\nContent-type: application/json\r\n\r\n".format(SERVER_ADDR, str(SERVER_PORT), str(len(json)))
+        header = "POST /ACTiming2/live HTTP/1.1\r\nHost: {}:{}\r\nAccept-Encoding: identity\r\nContent-Length: {}\r\nContent-type: application/json\r\n\r\n"\
+            .format(SERVER_ADDR, str(SERVER_PORT), str(len(json)))
         # postLogMessage(header)
         message = header + json
         httpThread = HTTPPostThread()
@@ -302,6 +325,7 @@ class Leaderboard:
             carObj["lapPostTime"] = car.lapPostTime
             carObj["isInPitlane"] = car.isInPitlane
             carObj["isInPit"] = car.isInPit
+            carObj["connected"] = car.connected
             cars_json_list.append(carObj)
         output_obj["cars"] = cars_json_list
         jsonstr = json.dumps(output_obj)
@@ -336,7 +360,7 @@ def acMain(ac_version):
     postLogMessage("ACTiming HTTP plugin OK")
     leaderboard = Leaderboard()
     postLogMessage("Leaderboard created")
-    postLogMessage("Running directory: " + __file__);
+    postLogMessage("Running directory: " + __file__)
     return name  # Возвращается имя приложения - требование AC
 
 def acUpdate(deltaT):
