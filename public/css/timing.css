@@ -99,7 +99,11 @@ tbody td.recent-lap {
 }
 
 tbody tr.lead-lap {
-	font-weight: bold;
+	/*font-weight: bold;*/
+}
+
+tbody td.number-col.position.is-lapped {
+  background-color: #0011aa !important;
 }
 
 .fastest-lap {

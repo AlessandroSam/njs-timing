@@ -54,9 +54,13 @@
                 </thead>
                 <tbody>
                 <tr ng-repeat="car in timingData.cars"
-                    ng-class="{'lead-lap': isLeadLap(car.lapsCompleted), 'is-in-pit': car.isInPit, 'disconnected': !car.connected}">
+                    ng-class="{'lead-lap': isLeadLap(car.lapsCompleted),
+                               'is-in-pit': car.isInPit,
+                               'disconnected': !car.connected}">
                     <td class="number-col position"
-                        ng-class="{'connected': car.connected, 'disconnected': !car.connected}">{{$index+1}}</td>
+                        ng-class="{'is-lapped': !isLeadLap(car.lapsCompleted),
+                                   'connected': car.connected,
+                                   'disconnected': !car.connected}">{{$index+1}}</td>
                     <!--<td class="number-col">{{car.carId}}</td>-->
                     <td>{{car.driverName}}</td>
                     <td>{{car.carName}}</td>
