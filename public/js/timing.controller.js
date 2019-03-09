@@ -1,17 +1,15 @@
-var liveTiming = angular.module("liveTiming", []);
+angular.module('liveTiming').controller('TimingController', ['$scope', '$interval', '$http', function ($scope, $interval, $http) {
+    var PRACTICE = 0;
+    var P_STRING = "практика";
+    var QUALIFY = 1;
+    var Q_STRING = "квалификация";
+    var RACE = 2;
+    var R_STRING = "гонка";
+    var N_STRING = "нет";
+    var UPDATE_INTERVAL = 1000; // интервал обновления данных в миллисекундах
+    
+    var RECENT_TIME_DELTA = 8000;
 
-var PRACTICE = 0;
-var P_STRING = "практика";
-var QUALIFY = 1;
-var Q_STRING = "квалификация";
-var RACE = 2;
-var R_STRING = "гонка";
-var N_STRING = "нет";
-var UPDATE_INTERVAL = 1000; // интервал обновления данных в миллисекундах
-
-var RECENT_TIME_DELTA = 8000;
-
-liveTiming.controller('LiveTimingCtrl', ['$scope', '$interval', '$http', function ($scope, $interval, $http) {
     $interval(function () {
         $http.get('/ACTiming2/live?brief=0').success(function (data) {
             $scope.timingData = data;
@@ -41,6 +39,8 @@ liveTiming.controller('LiveTimingCtrl', ['$scope', '$interval', '$http', functio
                 default:
                     data.sessionString = N_STRING;
                     $scope.sessionOk = false;
+                    $scope.timingData = {};
+                    return;
             }
             $scope.timingData.cars.forEach((car, index, cars) => {
                 let leadTime = (data.session === RACE) ? cars[0].totalTime : cars[0].bestLap;
@@ -52,7 +52,7 @@ liveTiming.controller('LiveTimingCtrl', ['$scope', '$interval', '$http', functio
                     car.gap = '-' + (cars[0].lapsCompleted - car.lapsCompleted).toString() + 'L';
                 }
                 if (car.lapsCompleted === 0) car.gap = '-';
-                car.connectedString = (car.connected === true ? "" : "(NC)")
+                car.connectedString = (car.connected === true ? "" : "(NC)");
 
             })
         });
@@ -66,7 +66,8 @@ liveTiming.controller('LiveTimingCtrl', ['$scope', '$interval', '$http', functio
 
     // Возвращает true, пилот находится в одном круге с лидером. Имеет смысл только для гонки.
     $scope.isLeadLap = function (lapNumber) {
-        return (lapNumber === $scope.timingData.cars[0].lapsCompleted) && $scope.timingData.session === RACE;
+        if ($scope.timingData.session !== RACE) return true;
+        return (lapNumber === $scope.timingData.cars[0].lapsCompleted);
     };
 
     $scope.isFastestLap = function (lapTime) {

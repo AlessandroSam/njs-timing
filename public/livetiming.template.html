@@ -1,26 +1,12 @@
-<!DOCTYPE html>
-<html ng-app="liveTiming">
-<head>
-    <title>Лайв-тайминг</title>
-    <link rel="stylesheet" href="fonts/prime.css"/>
-    <link rel="stylesheet" href="components/bootstrap/dist/css/bootstrap.css"/>
-    <link rel="stylesheet" href="css/timing.css"/>
-    <script src="js/angular.min.js"></script>
-    <script src="//unpkg.com/@uirouter/angularjs/release/angular-ui-router.min.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/timing.js"></script>
-</head>
-
-<body>
-<div id="timing-content" ng-controller="LiveTimingCtrl">
+<div id="timing-content" ng-controller="TimingController">
     <div class="header row">
         <div class="col-md-6">
             <span>Сессия: {{timingData.sessionString}}</span>
         </div>
         <!-- Практика и квалификация ограничивается временем, гонка - кругами -->
-        <div ng-if="sessionOk && !isRace" class="col-md-6">
+        <div ng-if="sessionOk" class="col-md-6">
             <span>Оставшееся время:</span>
-            <span class="digital-counter">{{timeLeftView | date:'h:mm:ss':'+0000'}}</span>
+            <span class="digital-counter">{{timeLeftView | date:'hh:mm:ss':'+0000'}}</span>
         </div>
         <div ng-if="sessionOk && isRace" class="col-md-6">
             <span>Осталось кругов:</span>
@@ -62,7 +48,8 @@
                     <td class="number-col position"
                         ng-class="{'is-lapped': !isLeadLap(car.lapsCompleted),
                                    'connected': car.connected,
-                                   'disconnected': !car.connected}">{{$index+1}}</td>
+                                   'disconnected': !car.connected,
+                                   'finished': car.isFinished && isLeadLap(car.lapsCompleted)}">{{$index+1}}</td>
                     <!--<td class="number-col">{{car.carId}}</td>-->
                     <td>{{car.driverName}}</td>
                     <td>{{car.carName}}</td>
@@ -83,6 +70,3 @@
         </div>
     </div>
 </div>
-</body>
-
-</html>

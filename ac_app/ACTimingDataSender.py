@@ -152,6 +152,7 @@ class CarInfo:
         self.connected = False
         self.leaderboardPosition = 0
         self.realTimeLeaderboardPosition = 0
+        self.isFinished = 0  # гонщик завершил сессию
 
 
 class Leaderboard:
@@ -242,13 +243,14 @@ class Leaderboard:
                 # Если количество кругов, пройденных пилотом, в игре больше, чем в структуре car, обновляем данные по кругам
                 newLapsCompleted = ac.getCarState(car.carId, acsys.CS.LapCount)
                 if car.lapsCompleted < newLapsCompleted:
+                    postLogMessage('car' + str(car.carId) + ' per-lap timing update')
                     # Покруговые обновления
-                    # postLogMessage('Per-lap update')
                     car.lapsCompleted = newLapsCompleted
                     car.lastLap = ac.getCarState(car.carId, acsys.CS.LastLap)
                     car.bestLap = ac.getCarState(car.carId, acsys.CS.BestLap)
                     car.totalTime += car.lastLap
                     car.lapPostTime = self.session_time
+                    car.isFinished = ac.getCarState(car.carId, acsys.CS.RaceFinished)
                     # postLogMessage('Per-lap update OK')
                 # Постоянные обновления
                 # postLogMessage('Per-iterval update')
@@ -284,9 +286,9 @@ class Leaderboard:
             лайв-тайминг в реальных гонках, например, F1 или DTM), при этом надо сохранять квалификационное время,
             чтобы получить корректный порядок на первом круге (игра это время не сохраняет в lastLap).
             '''
-            finished = [car for car in carsNotNone if car.lapsCompleted == self.sessionLapCount]
-            if len(finished) > 0:
-                finished = sorted(finished, key=attrgetter('totalTime'), reverse=False)
+            finished = [car for car in carsNotNone if car.isFinished == 1]
+            #if len(finished) > 0:
+            #    finished = sorted(finished, key=attrgetter('totalTime'), reverse=False)
             # postLogMessage("Finished cars list created with len = " + str(len(finished)) + "; lap count is " + str(self.sessionLapCount))
             carsToSort = [car for car in carsNotNone if car.lapsCompleted < self.sessionLapCount]
             # postLogMessage("Non-finished cars list created with len = " + str(len(finished)))
@@ -326,6 +328,7 @@ class Leaderboard:
             carObj["isInPitlane"] = car.isInPitlane
             carObj["isInPit"] = car.isInPit
             carObj["connected"] = car.connected
+            carObj["isFinished"] = car.isFinished
             cars_json_list.append(carObj)
         output_obj["cars"] = cars_json_list
         jsonstr = json.dumps(output_obj)

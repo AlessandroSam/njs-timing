@@ -25,6 +25,29 @@ td {
 	padding: 5px;
 }*/
 
+body {
+	background-color: #222222;
+}
+
+.header__container {
+	background-color: #111111;
+	height: 60px;
+	padding: 10px;
+	font-family: Consolas, monospace;            
+	font-size: 16px;
+	color: white;
+}
+
+.header__title {
+	float: left;            
+	font-weight: bold;
+}
+
+.header__navigation {
+	font-style: italic;
+	float: right;        
+}
+
 /* ��������� ������ ������� */
 .selected {
 	background-color: lightblue;

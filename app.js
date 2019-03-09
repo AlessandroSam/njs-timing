@@ -19,6 +19,8 @@ var flReset = {
   lapNumber: -1
 }
 
+var sessionData = {session: -1, timeRemaining: '--:--', lapsRemaining: '--'};
+
 var jsonLogCount = 0;
 const jsonLogMax = 5;
 
@@ -28,7 +30,13 @@ app.listen(8080, function () {
 
 app.use(express.static('public'));
 
+/* Метод получения данных от Python-бэкенда */
 app.post('/ACTiming2/live', function(req, res, next) {
+  sessionData = {
+    session: req.body.session,
+    timeRemaining: (req.body.timeLeft < 0) ? 0 : req.body.timeLeft,
+    lapsRemaining: 0 // TODO ещё сделаем
+  }
   if (req.body.session == 2) { // RACE
     if (req.body.cars[0].lapsCompleted > 0) {
       if (fastestLap.bestLap == -1) {
@@ -45,10 +53,9 @@ app.post('/ACTiming2/live', function(req, res, next) {
           fastestLap.lapNumber = car.lapsCompleted;
         }
       });
-    } else {
-      fastestLap = flReset;
     }
-
+  } else {
+    fastestLap = flReset;
   }
   req.body.fastestLap = fastestLap;
   if (jsonLogCount < jsonLogMax) {
@@ -59,8 +66,12 @@ app.post('/ACTiming2/live', function(req, res, next) {
 })
 
 app.get('/', function(req, res, next) {
-  res.sendFile(__dirname + '/public/livetiming.html');
-});
+  res.sendFile(__dirname + '/public/index.html');
+})
+
+app.get('/session', function(req, res, next) {
+  res.send(JSON.stringify(sessionData));
+})
 
 app.get('/ACTiming2/live', function(req, res, next) {
   res.send(currentJson);

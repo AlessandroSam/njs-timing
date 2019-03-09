@@ -58,7 +58,8 @@ table .number-col {
 }
 
 .total-time {
-  width: 100px;
+  min-width: 150px;
+  width: 150px;
 }
 
 .pit-col {
@@ -114,4 +115,9 @@ tbody td.number-col.position.is-lapped {
 
 .is-in-pit {
   color: #aaa;
+}
+
+.finished {
+  background-color: darkgrey !important;
+  color: darkslategray !important;
 }
