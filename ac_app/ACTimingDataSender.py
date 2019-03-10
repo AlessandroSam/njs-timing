@@ -259,6 +259,7 @@ class Leaderboard:
                 car.isInPit = ac.isCarInPit(car.carId)
                 car.leaderboardPosition = ac.getCarLeaderboardPosition(car.carId)
                 car.realTimeLeaderboardPosition = ac.getCarRealTimeLeaderboardPosition(car.carId)
+                car.isFinished = ac.getCarState(car.carId, acsys.CS.RaceFinished)
                 # postLogMessage('Per-interval update OK')
         # self.session_time = info.graphics.sessionTimeLeft
 
@@ -281,27 +282,13 @@ class Leaderboard:
         carsNotNone = [car for car in self.carList if car is not None]
         postLogMessage("Non-empty cars: " + str(len(carsNotNone)))
         if self.session == AC_RACE:
-            ''' Сортировка по totalDistance покажет положение пилотов в любой момент гонки. Сортировка по totalTime
-            позволит определять положение только в конце каждого круга (и в принципе, именно так работает
-            лайв-тайминг в реальных гонках, например, F1 или DTM), при этом надо сохранять квалификационное время,
-            чтобы получить корректный порядок на первом круге (игра это время не сохраняет в lastLap).
-            '''
-            finished = [car for car in carsNotNone if car.isFinished == 1]
-            #if len(finished) > 0:
-            #    finished = sorted(finished, key=attrgetter('totalTime'), reverse=False)
-            # postLogMessage("Finished cars list created with len = " + str(len(finished)) + "; lap count is " + str(self.sessionLapCount))
-            carsToSort = [car for car in carsNotNone if car.lapsCompleted < self.sessionLapCount]
-            # postLogMessage("Non-finished cars list created with len = " + str(len(finished)))
-            if self.session_time < 30 * 60000:  # FIXME грязный хак, может сломаться после обновления игры
-                cars_sorted = sorted(carsToSort, key=attrgetter('totalDistance'), reverse=True)
-            else:
-                cars_sorted = sorted(carsToSort, key=attrgetter('qualifiedTime'), reverse=False)
-            cars_sorted = finished + cars_sorted
-            # postLogMessage("Created full car list")
+            carsToSort = [car for car in carsNotNone if (True)]
+            cars_sorted = sorted(carsToSort, key=attrgetter('realTimeLeaderboardPosition'))
         else:
             '''
             В практике/квалификации сортируем по лучшему времени круга. В начале это время равно 0:00.000, и необходимо,
             чтобы оно не "всплывало" при сортировке. Поэтому тех, кто время не поставил, сортируем по ID.
+            TODO Чем realTimeLeaderboardPosition не угодил?
             '''
             carsToSort = [car for car in carsNotNone if car.bestLap > 0]
             carsWithNoLaps = [car for car in carsNotNone if car not in carsToSort]
@@ -328,7 +315,7 @@ class Leaderboard:
             carObj["isInPitlane"] = car.isInPitlane
             carObj["isInPit"] = car.isInPit
             carObj["connected"] = car.connected
-            carObj["isFinished"] = car.isFinished
+            carObj["isFinished"] = car.isFinished        
             cars_json_list.append(carObj)
         output_obj["cars"] = cars_json_list
         jsonstr = json.dumps(output_obj)
