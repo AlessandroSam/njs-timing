@@ -4,11 +4,11 @@
             <span>Сессия: {{timingData.sessionString}}</span>
         </div>
         <!-- Практика и квалификация ограничивается временем, гонка - кругами -->
-        <div ng-if="sessionOk" class="col-md-6">
+        <div ng-if="sessionOk || (isRace && isTimedRace)" class="col-md-6">
             <span>Оставшееся время:</span>
             <span class="digital-counter">{{timeLeftView | date:'hh:mm:ss':'+0000'}}</span>
         </div>
-        <div ng-if="sessionOk && isRace" class="col-md-6">
+        <div ng-if="sessionOk && isRace && !isTimedRace" class="col-md-6">
             <span>Осталось кругов:</span>
             <div class="digital-counter">{{lapsRemaining}}</div>
         </div>

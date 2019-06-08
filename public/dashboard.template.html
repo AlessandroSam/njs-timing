@@ -1,0 +1,16 @@
+<div ng-controller="DashboardController">
+    <div class="container">
+        <div class="row">
+          <div class="col-sm">
+            <span>GAPS</span>
+            <li ng-repeat="car in gaps">{{car.driverName}} : {{car.gap  | date:'mm:ss.sss'}}</li>
+          </div>
+          <div class="col-sm">
+            CAR INFO
+          </div>
+          <div class="col-sm">
+            LAPTIMES
+          </div>
+        </div>
+      </div>
+</div>

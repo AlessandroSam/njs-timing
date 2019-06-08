@@ -152,6 +152,8 @@ class CarInfo:
         self.connected = False
         self.leaderboardPosition = 0
         self.realTimeLeaderboardPosition = 0
+        self.isTimedRace = 0    # гонка ограничена временем, а не кругами
+        self.hasExtraLap = 0    # дополнительный круг в гонке по времени
         self.isFinished = 0  # гонщик завершил сессию
 
 
@@ -189,6 +191,8 @@ class Leaderboard:
         self.sessionLapCount = info.graphics.numberOfLaps  # число кругов в гонке / TODO Учесть гонки с ограничением по времени
         self.carsCount = ac.getCarsCount()
         self.flag = info.graphics.flag
+        self.isTimedRace = info.static.isTimedRace
+        self.hasExtraLap = info.static.hasExtraLap
         return isUpdated
 
     def updateCarList(self):
@@ -299,6 +303,7 @@ class Leaderboard:
         output_obj = {"session": self.session,                # текущая сессия (int)
                       "timeLeft": self.session_time,          # оставшееся время (int мс, клиент преобразует)
                       "numberOfLaps": self.sessionLapCount,
+                      "isTimedRace": self.isTimedRace,
                       "flag": self.flag }   # число кругов в гонке FIXME а в квале как?
         cars_json_list = []
         for car in cars_sorted:

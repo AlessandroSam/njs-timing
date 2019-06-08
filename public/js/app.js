@@ -1,11 +1,11 @@
-var liveTiming = angular.module("liveTiming", ['ui.router']);
+var liveTiming = angular.module('liveTiming', ['ui.router']);
 
 liveTiming.config(['$stateProvider', function($stateProvider) {
     var states = [
         {
             name: 'dashboard',
             url: '/dashboard',
-            template: `<div>Dashboard goes here</div>`
+            component: 'dashboard'
         },
         { 
             name: 'timing', 
@@ -16,12 +16,12 @@ liveTiming.config(['$stateProvider', function($stateProvider) {
         {
             name: 'analysis',
             url: '/analysis',
-            template: `<div>Analysis goes here</div>`
+            template: '<div>Analysis goes here</div>'
         },
         {
             name: 'settings',
             url: '/settings',
-            template: `<div>Settings goes here</div>`
+            template: '<div>Settings goes here</div>'
         }
     ];
       
