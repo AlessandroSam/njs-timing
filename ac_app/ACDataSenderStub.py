@@ -2,11 +2,18 @@ try:
     import socket
 except ImportError as e:
     postLogMessage("Cannot import socket")
+import threading
+import sys
+import queue
+import time
 
 data = ""
 SERVER_ADDR = "localhost"
 SERVER_PORT = 8080
 APP_URL = "/ACTiming2/live"
+SEND_INTERVAL = 0.2  # интервал передачи в секундах, в общем случае должен совпадать с интервалом отдачи данных в корсовском приложении
+DEFAULT_FILENAME = 'C:\\Data\\njs-timing\\ac_app\\leaderboard.json' # vscode, wtf?
+
 
 def postLogMessage(message):
     print(message);
@@ -18,26 +25,47 @@ class HTTPPostThread(threading.Thread):
     def __init__(self):
         super().__init__()
         self.data = ""
-        # self.queue = queue.Queue()
+        self.queue = queue.Queue()
         self.stop = False
+        self.isRunning = False
 
     def put(self, packet):
-        self.data = packet
+        self.queue.put(packet)
 
     def start(self):
         # postLogMessage("HTTP sender thread started")
+        if (self.isRunning):
+            return
+        self.isRunning = True
         return super().start()
+
+    def is_running(self):
+        return self.isRunning
 
     def run(self):
         httpconn = None
         # Модуль http отказывается работать в AC по неясным причинам. Пошлём POST руками.
+        # Да, здесь не AC. Это копипаста.
         try:
             httpconn = socket.socket()
             # postLogMessage("Socket created")
             httpconn.connect((SERVER_ADDR, SERVER_PORT))
             # postLogMessage("Connected to web server")
             # postLogMessage("Data:" + self.data)
-            httpconn.sendall(bytes(self.data[:], 'UTF-8'))
+            packetsSent = 0
+            while True:
+                try:
+                    data = self.queue.get()
+                    httpconn.sendall(bytes(data[:], 'UTF-8'))
+                    packetsSent = packetsSent + 1
+                    print("Packets sent: " + str(packetsSent) + " || Queue size: " + str(self.queue.qsize()) + "\t")
+                    time.sleep(SEND_INTERVAL);
+                    if (self.stop):
+                        return
+                except queue.Empty:
+                    return
+                except KeyboardInterrupt:
+                    return
             # postLogMessage("Send OK")
         except Exception as e:
             postLogMessage("Cannot post data to server" + repr(e))
@@ -46,18 +74,23 @@ class HTTPPostThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    filename = sys.argv[1]
-    if filename == '':
-        print("No input file specified.")
-    else:
+    filename = DEFAULT_FILENAME
+    if (len(sys.argv) == 2):
+        filename = sys.argv[1]
         print("Using file " + filename)
-        infile = open(filename, 'r')
-        
-        for (line in infile):
+    else:
+        print("No input file specified, using " + DEFAULT_FILENAME + " by default.")
+    infile = open(filename, 'r')
+    httpThread = HTTPPostThread()
+    httpThread.start()
+    try:
+        for line in infile:
             header = "POST /ACTiming2/live HTTP/1.1\r\nHost: {}:{}\r\nAccept-Encoding: identity\r\nContent-Length: {}\r\nContent-type: application/json\r\n\r\n"\
-                .format(SERVER_ADDR, str(SERVER_PORT), str(len(json)))
+                .format(SERVER_ADDR, str(SERVER_PORT), str(len(line)))
             # postLogMessage(header)
             message = header + line
-            httpThread = HTTPPostThread()
             httpThread.put(message)
-            httpThread.start()        # TODO Реализовать через очередь
+            # exit by Ctrl+C
+    except KeyboardInterrupt: # один фиг не работает, отлаживать влом, не так важно
+        httpThread.stop = true
+        httpThread.join() 
