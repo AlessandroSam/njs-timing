@@ -93,6 +93,7 @@ if __name__ == '__main__':
             httpThread.put(message)
             # exit by Ctrl+C
         while (httpThread.isRunning):
+            time.sleep(0.5)
             continue
     except KeyboardInterrupt: # один фиг не работает, отлаживать влом, не так важно
         httpThread.stop = True
