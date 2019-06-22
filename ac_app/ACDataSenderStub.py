@@ -11,7 +11,7 @@ data = ""
 SERVER_ADDR = "localhost"
 SERVER_PORT = 8080
 APP_URL = "/ACTiming2/live"
-SEND_INTERVAL = 0.2  # интервал передачи в секундах, в общем случае должен совпадать с интервалом отдачи данных в корсовском приложении
+SEND_INTERVAL = 1  # интервал передачи в секундах, в общем случае должен совпадать с интервалом отдачи данных в корсовском приложении
 DEFAULT_FILENAME = 'C:\\Data\\njs-timing\\ac_app\\leaderboard.json' # vscode, wtf?
 
 
@@ -63,6 +63,7 @@ class HTTPPostThread(threading.Thread):
                     if (self.stop):
                         return
                 except queue.Empty:
+                    self.isRunning = false
                     return
                 except KeyboardInterrupt:
                     return
@@ -91,6 +92,8 @@ if __name__ == '__main__':
             message = header + line
             httpThread.put(message)
             # exit by Ctrl+C
+        while (httpThread.isRunning):
+            continue
     except KeyboardInterrupt: # один фиг не работает, отлаживать влом, не так важно
-        httpThread.stop = true
+        httpThread.stop = True
         httpThread.join() 
